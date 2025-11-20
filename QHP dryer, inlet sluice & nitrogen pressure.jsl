@@ -1,0 +1,48 @@
+// comments
+// no readings for 41114. why?
+
+
+start = "'2025-02-14 15:00:00'"; // yyyy-mm-dd
+stop = "'2025-02-14 15:40:00'";
+granularity = "SECOND";
+
+Open Database( "DSN=bq64_system", "
+
+SELECT 
+  TIMESTAMP_TRUNC(time, "|| granularity ||") AS time,
+  
+  AVG(CASE WHEN tagname = 'HMI_Pv.Ai_P_Buidling' THEN value END) AS building_pressure,				-- atmopsheric pressure inside factory building
+  
+  AVG(CASE WHEN tagname = 'HMI_Pv.Ai_P_Sluice_IN' THEN value END) AS PT41120_pressure_in_sluice, 	-- pressure reading in the sluice
+  
+  AVG(CASE WHEN tagname = 'HMI_Pv.Ai_P_VacuumTrough' THEN value END) AS avg_P_VacuumTrough,       	-- pressure in the dryer
+
+  AVG(CASE WHEN tagname = 'Prog_InletSluice.o_Vlv_Inlet' THEN value END) AS Valve_In41100, 			-- valve for letting dryer feed into the sluice
+
+  AVG(CASE WHEN tagname = 'Prog_InletSluice.o_Vlv_Outlet' THEN value END) AS Valve_Out41101,		-- valve for letting dryer feed out of the sluive & into the dryer
+  
+  AVG(CASE WHEN tagname = 'Prog_InletSluice.o_Vlv_Vacuum' THEN value END) AS Vacuum_valve_41115,	-- valve for vacuum line to sluice
+  
+  AVG(CASE WHEN tagname = 'Prog_InletSluice.o_Vlv_Nitrogen' THEN value END) AS Nitrogen_valve_41114	-- Inlet sluice nitrogen valve - open 
+
+FROM 
+  `akbm-houston-prod.houston_data.sensor_data_dryer`
+WHERE 
+  time BETWEEN TIMESTAMP("|| start ||") AND TIMESTAMP("|| stop ||") -- Replace with your actual time range
+  AND time >= '1900-01-01' -- Partition filter to ensure efficient query execution
+  AND tagname IN(
+    'HMI_Pv.Ai_P_Sluice_IN', 
+    'Prog_InletSluice.o_Vlv_Inlet', 
+    'Prog_InletSluice.o_Vlv_Outlet',
+    'Prog_InletSluice.o_Vlv_Vacuum',
+    'HMI_Pv.Ai_P_Buidling',
+    'HMI_Pv.Ai_P_VacuumTrough'
+  )
+GROUP BY 
+  TIMESTAMP_TRUNC(time, "|| granularity ||")
+ORDER BY 
+  time;
+
+
+");
+

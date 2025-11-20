@@ -1,0 +1,406 @@
+﻿/*
+
+Author:					Patrick Galler
+Creation date:			01. Oct. 2024
+Creation JMP version:	JMP 17.2.0
+
+
+Description: Algae oil in process, finished goods and release data trending
+
+Version changes:
+	v1: first version
+	v1.1: removed redundant rows | introduced sequence column for plotting | multiple graph builder table script updates | tabulation script
+	v1.2: added TestDetail = C16:0
+
+References: References: https://community.jmp.com/t5/Abstracts/Data-Cockpit-Ways-to-Enrich-a-Master-Table-with-Additional-Data/ev-p/708109
+
+Notes: 
+	14.Feb.2025: First bx on algae oil process iteration 2 (steel tanks only & no more SpaceKraft tote).
+
+*/
+
+Names Default To Here( 1 );
+//-----------------------------------------------------------------------------------
+// querying for raw data
+//-----------------------------------------------------------------------------------
+RawDat = Open Database( "DSN=bq64_system", 
+    "
+    SELECT
+		t1.Source,
+		t1.SampleType,
+		t1.BatchId,
+		t1.SampleId,
+		t1.ItemNumber,
+		t1.Product,
+		t1.CommercialProduct,
+		t1.TestDate,
+		t1.TestName,
+		t1.Method,
+		t1.TestDetail,
+		t1.Unit,
+		t1.Value,
+		t1.OutOfSpec,
+		t1.SpecReportFlag,
+		t1.ReplicateId,
+		t1.ParamListVersionId,
+		t1.VariantId,
+		t1.Dataset,
+		t1.CompletedBy,
+		t1.Comments,
+		t2.ProductSpecificationNumber,
+		min_MfgDates.min_MfgDate
+    
+    FROM 
+        `akbm-datawarehouse-operational.views_qualityControl.FactQCFullHistory` AS t1
+    
+    LEFT JOIN # different to what's used in capsule trending script in order to retain rows where t1.Source = 'Floramarine_AlgaeOilDHA60_DailyLog'
+
+		`akbm-datawarehouse-operational.views_mdm.DimItem` AS t2 ON t1.ItemNumber = t2.ItemNumber 
+		
+		# subquery for getting only minimum, i.e. oldest mfg dates in case there are multiple dates	
+		LEFT JOIN (
+			SELECT
+				BatchId,
+				MIN(ManufacturingDate) as min_MfgDate
+				
+			FROM
+				`akbm-datawarehouse-operational.views_jeeves.FactInventory` 
+			
+			GROUP BY
+			BatchId
+	
+		) AS min_MfgDates ON t1.BatchId = min_MfgDates.BatchId
+    
+    WHERE
+		t1.Source = 'Floramarine_AlgaeOilDHA60_DailyLog'
+		OR
+		(t1.Source ='LIMS'
+		
+			AND
+				t1.CommercialProduct = 'Algae'
+			
+			AND
+				(t1.Product != 'Bleaching earth' OR t1.Product IS NULL)
+			
+			AND
+				t1.TestDetail IN (
+					'Acid value',
+					'Astaxanthin',
+					'C16:0',
+					'C18:3n3 QC',
+					'C18:4n3 QC',
+					'C20:3n3 QC',
+					'C20:4n3 QC',
+					'C20:5n3 (EPA)',
+					'C20:5n3 (EPA) QC',
+					'C21:5n3 QC',
+					'C22:5n3 QC',
+					'C22:6n3 (DHA)',
+					'C22:6n3 (DHA) QC',
+					'Free Fatty Acids',
+					'Moisture and volatile matter',
+					'p-Anisidine value',
+					'Peroxide value',
+					'PUFA n-3',
+					'PUFA n-3 QC',
+					'QC Peroxide value',
+					'TOTOX value',
+					'Unsaponifiable matter',
+					'Water',
+					'Water activity at 25°C'
+				)
+			
+			AND
+				(t1.Unit != 'A%' OR t1.Unit IS NULL) # required to also include rows without records in Unit column
+	
+		)	
+    ",
+    "QC data"
+);
+// sorting
+RawDat << Set Label Columns( :BatchId, :Unit );
+RawDat << Sort(
+	By( :CommercialProduct, :BatchId, :TestDate ),
+	Replace Table,
+	Order( Ascending, Ascending )
+);
+// adding column property for value ordering
+RawDat:SampleType << Set Property( "Value Ordering", {"InProcess", "Finished Goods", "Release Sample"} );
+// changing table script panel width
+Wait(0);
+window = Get Window( RawDat );
+sb = window << Find(SplitterBox(1));
+sb << Set Width(400);
+// changing table script panel hgieht
+sb2 = window[SplitterBox(1)];
+sb2 << set sizes({0.55,1,0.5}); // this sets the proportions of the 3 panels left hand side in a JMP table
+
+
+
+//-------------------------------------------------------------------------------------------------
+// delete duplicate rows. these appear to come from the left join used in the initial SQL query
+//-------------------------------------------------------------------------------------------------
+RawDat << Select Duplicate Rows() << Delete Rows;
+
+//-------------------------------------------------------------------------------------------------
+// adding formula column to give x-axis position in chronological order
+//-------------------------------------------------------------------------------------------------
+RawDat << New Column( "Sequence", 
+	Formula( 
+		Col Cumulative Sum( 1,
+			:Source,
+			:Product,
+			:SampleType,
+			:TestDetail
+		)
+	)
+); 
+
+//-------------------------------------------------------------------------------------------------
+// adjusting table script panel width
+//-------------------------------------------------------------------------------------------------
+Wait( 0 ); // without this, the width adjustment isn't executed on the table
+window = Get Window( RawDat );
+sp = window << Find( SplitterBox( 1 ) );
+sp << Set Width( 350 );
+
+//-------------------------------------------------------------------------------------------------	
+// table script (graph): QC & in process test results per data filter vs mfg date
+//-------------------------------------------------------------------------------------------------
+RawDat << New Script( "Test results overview (by sequence)",
+	Graph Builder(
+		Size( 558, 460 ),
+		Show Control Panel( 0 ),
+		Fit to Window( "Off" ),
+		Variables(
+			X( :Sequence ),
+			Y( :Value ),
+			Group Y( :SampleType ),
+			Overlay( :TestDetail )
+		),
+		Elements( Points( X, Y, Legend( 11 ) ), Line( X, Y, Legend( 13 ) ) ),
+		Local Data Filter(
+			Width( 313 ),
+			Add Filter(
+				columns( :Product, :TestDetail ),
+				Display( :Product, N Items( 5 ) ),
+				Display( :TestDetail, N Items( 18 ) )
+			)
+		)
+	);
+);
+
+
+//-------------------------------------------------------------------------------------------------	
+// table script (graph): QC & in process test results per data filter vs test date
+//-------------------------------------------------------------------------------------------------
+RawDat << New Script( "Test results overview (by test date)",
+	Graph Builder(
+		Size( 558, 460 ),
+		Show Control Panel( 0 ),
+		Fit to Window( "Off" ),
+		Variables(
+			X( :TestDate ),
+			Y( :Value ),
+			Group Y( :SampleType ),
+			Overlay( :TestDetail )
+		),
+		Elements( Points( X, Y, Legend( 11 ) ), Line( X, Y, Legend( 13 ) ) ),
+		Local Data Filter(
+			Width( 313 ),
+			Add Filter(
+				columns( :Product, :TestDetail ),
+				Display( :Product, N Items( 5 ) ),
+				Display( :TestDetail, N Items( 18 ) )
+			)
+		)
+	);
+);
+
+//-------------------------------------------------------------------------------------------------	
+// table script (graph): QC & in process test results per data filter vs batch id
+//-------------------------------------------------------------------------------------------------
+RawDat << New Script( "Test results overview (by batch id)",
+		Graph Builder(
+		Size( 558, 464 ),
+		Show Control Panel( 0 ),
+		Fit to Window( "Off" ),
+		Variables(
+			X( :BatchId ),
+			Y( :Value ),
+			Group Y( :SampleType ),
+			Overlay( :TestDetail )
+		),
+		Elements( Points( X, Y, Legend( 11 ) ), Line( X, Y, Legend( 13 ) ) ),
+		Local Data Filter(
+			Width( 313 ),
+			Add Filter(
+				columns( :Product, :TestDetail ),
+				Display( :Product, N Items( 5 ) ),
+				Display( :TestDetail, N Items( 18 ) )
+			)
+		),
+		SendToReport(
+			Dispatch(
+				{},
+				"BatchId",
+				ScaleBox,
+				{Label Row( Label Orientation( "Angled" ) )}
+			)
+		)
+	);
+);
+
+//-------------------------------------------------------------------------------------------------	
+// table script (graph): Peroxide values for in-process, finished goods & release samples
+//-------------------------------------------------------------------------------------------------
+RawDat << New Script( "Peroxides for in-process, finished goods & release samples",
+	Graph Builder(
+		Size( 1252, 504 ),
+		Show Control Panel( 0 ),
+		Fit to Window( "Off" ),
+		Variables(
+			X( :TestDate ),
+			Y( :Value ),
+			Group X( :SampleType ),
+			Overlay( :TestDetail )
+		),
+		Elements( Line( X, Y, Legend( 12 ) ), Points( X, Y, Legend( 13 ) ) ),
+		Local Data Filter(
+			Close Outline( 1 ),
+			Width( 269 ),
+			Add Filter(
+				columns( :SampleType, :Product, :TestDetail ),
+				Where(
+					:SampleType == {"InProcess", "Finished Goods", "Release Sample"}
+				),
+				Where( :TestDetail == {"Peroxide value", "PV", "QC Peroxide value"} ),
+				Display( :SampleType, N Items( 3 ), "List Display" ),
+				Display( :Product, N Items( 3 ), "List Display" ),
+				Display( :TestDetail, N Items( 15 ) )
+			)
+		),
+		SendToReport(
+			Dispatch(
+				{},
+				"400",
+				LegendBox,
+				{Legend Position( {12, [1, 0, 2], 13, [-3, -3, -3]} )}
+			)
+		)
+	)
+);
+
+//-------------------------------------------------------------------------------------------------	
+// table script (tabulation): table with mean values of QC results
+//-------------------------------------------------------------------------------------------------
+RawDat << New Script( "Tabulation",
+	Tabulate(
+		Show Control Panel( 0 ),
+		Add Table(
+			Column Table(
+				Grouping Columns( :TestDetail ),
+				Analysis Columns( :Value ),
+				Statistics( Mean )
+			),
+			Row Table( Grouping Columns( :BatchId ) )
+		),
+		Local Data Filter(
+			Mode( Show( 0 ) ),
+			Add Filter(
+				columns( :Product, :TestDetail ),
+				Display( :Product, N Items( 5 ) ),
+				Display( :TestDetail, N Items( 15 ) )
+			)
+		)
+	);
+);
+
+
+//-----------------------------------------------------------------------------------	
+// add event handler to batchid column ("Georg Raming's data cockpit"
+// :https://community.jmp.com/t5/Abstracts/Data-Cockpit-Ways-to-Enrich-a-Master-Table-with-Additional-Data/ev-p/708109)
+//-----------------------------------------------------------------------------------
+RawDat:BatchId << Set Property(
+	"Event Handler",
+	Event Handler(
+		Click(
+			JSL Quote(
+				Function( {thisTable, thisColumn, iRow}, // 3 parameters
+					{/* list of local variables, if needed */ },
+					New SQL Query(
+						//Version( 130 ),
+						Connection( "ODBC:DSN=bq64_system" ),
+						CustomSQL( Eval Insert( "\[SELECT t1.* FROM akbm-datawarehouse-operational.views_qualityControl.FactQCFullHistory t1 where t1.BatchId='^Char( thisTable:thisColumn[ iRow ] )^' ;]\" ) )
+					) << Run()
+				);
+			)					
+		),
+		Tip(
+			JSL Quote(
+				Function( {thisTable, thisColumn, iRow}, // 3 parameters
+					{ /* list of local variables, if needed */ },
+					// begin your code here
+					// this tip string appears when you hover the mouse over a cell.
+					// The tip should tell you what the Click script will do.
+					// the char(...) is only needed for non-character columns.
+					"Get release data for " || Char( thisTable:thisColumn[ iRow ] ) || " on your machine."; // return the tool tip string
+					// end your code here
+				);
+			)		
+	
+		),
+		Color(
+			JSL Quote(
+				Function( {thisTable, thisColumn, iRow}, // 3 parameters
+					{ /* list of local variables, if needed */ },
+					// begin your code here
+					// The value returned by this script should be a JMP color for the link
+					// displayed in the cell. Defaults to returning the preferred system link color.
+					// You could use another column to remember if a link has been visited and change the color.
+					RGBColor("link"); // return the color for the link. RGBColor("link") is the preferred system link color (often a shade of blue).
+					// end your code here
+				);
+			)		
+		)
+	)
+);
+
+/*
+/=========================================================================================================
+// to do
+//=========================================================================================================
+*) for the expression handler column ("Georg Raming's data cockpit"), include date of mfg for the individual bxs in the query.
+*) consider adding spec limits, at least for subset tables, if there are any.
+	if subsets don't exist, should they?
+*) adjust table script window
+	https://community.jmp.com/t5/Discussions/Setting-data-table-left-panel-size-in-JSL/td-p/79604
+	window << Get XML or window << Show Tree Structure 
+	maybe also take a look at how this is solved in the control chart script
+*) add tabulation function to tabulate release & finished goods data (separately?)
+	include column identifying product (crude, flormarine) and sample type (in process, finished goods release)
+*) seek generally inspiration from capsule trending script
+*) get spec limits into table
+*) table scripts
+		*) showing individual spec parameters & spec levels 
+
+
+
+
+
+
+/=========================================================================================================
+// developer comments
+//=========================================================================================================
+
+*) In FactQCFullHistory, there exists a data source 'Floramarine_AlgaeOilDHA60_DailyLog'. The source seems ot be file 'Floramarine_AlgaeOilDHA60_ProductionLog (3).xlsx' or similar on box. These are in process analyses managed outside of LIMS. Mostly Kasia and Marion are looking at this file, with only few instances of Kay, Paul F. and Orlando. Marvin, Ali or anyone else from QC have never viewed this file.
+
+
+
+
+//=========================================================================================================
+// copy paste area below here
+//=========================================================================================================
+
+
+/

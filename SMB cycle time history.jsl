@@ -1,0 +1,370 @@
+﻿//#####################################################################################
+// (1) Cycles & rotary valve positions:
+//#####################################################################################
+// purpose: explore different SMB-related tags and see if and how their signals change over time.
+// in brief: open table, get list of tagnames, build string & use in SQL query to get time resolved tag data
+// always see to it that dt is up to date and accessible.
+// user input: start, stop, granularity
+// the below are alright timepoints for seeing the 10 rotary cycle valve positions
+// start = "'2025-08-26 19:53:00'"; // yyyy-mm-dd, first sample taken 14:12:33
+// stop = "'2025-08-30 01:03:00'"; 
+/*Names Default To Here( 1 );
+dt = Open( "SMB steps & position tags.jmp", invisible );
+lst = Associative Array( dt:tagname ) << Get Keys;
+
+str = "'";
+For( i = 1, i <= N Items( lst ), i++,
+	If(
+		Contains( lst[i], "\" ) == 0,
+		str = str || Eval Insert( "^lst[i]^" ) || "', '"
+		, // else
+		lst[i] = Word( 1, lst[i], "\" ) || "\\" || Word( 2, lst[i], "\" ); // need to escape the \ in SQL with \\
+		str = str || Eval Insert( "^lst[i]^" ) || "', '"
+	)
+);
+Close( dt, no save );
+str = Left( str, Length( str ) - 3 );
+
+ODBC = "ODBC:DSN=bq64_system";
+
+// set start, stop & granularity
+start = "'2025-08-26 19:53:00'"; // yyyy-mm-dd, first sample taken 14:12:33
+stop = "'2025-08-30 01:03:00'"; 
+granularity = "SECOND";
+
+// build query
+sql_template = "\[
+
+	SELECT
+		tagname,
+		TIMESTAMP_TRUNC(time,  ¤ granularity ¤ ) AS time,
+		AVG(value) AS avg_value
+	FROM `akbm-houston-prod.houston_data.sensor_data_smb`
+	WHERE tagname IN ( ¤ str ¤ )
+	AND time BETWEEN TIMESTAMP( ¤ start ¤ ) AND TIMESTAMP( ¤ stop ¤ )
+	
+	GROUP BY
+		tagname,
+		time
+	ORDER BY
+		time,
+		tagname;
+]\
+";
+
+sql_str = Eval Insert(sql_template, "¤");
+
+// run query
+obj = New SQL Query(
+	Connection( ODBC ),
+	Custom SQL( sql_str ),
+	Query Name( "tag data" )
+);
+dt = obj << Run Foreground;
+
+dt2 = dt << Split(
+	Split By( :tagname ),
+	Split( :avg_value ),
+	Group( :time ),
+	Output Table( "splt" ),
+	Sort by Column Property
+);
+Close( dt, no save );
+Stop();
+*/
+
+
+
+//#####################################################################################
+// (2) Cycle times vs time:
+//#####################################################################################
+// in brief: get time for each rotary valve position.
+// current SMB cycle or sum-of-steps is 150 minutes in theory. what is it in practice?
+// the below script tries to answer this question.
+// 16.Sep.'25: added TK-164 to subquery. This is the SMB feedtank. Production said that often when SMB cycle time exceeds set value, TK164 level is low.
+Names Default To Here( 1 );
+
+ODBC = "ODBC:DSN=bq64_system";
+
+// set start, stop & granularity
+start = "'2019-01-01 00:00:00'"; // yyyy-mm-dd, first sample taken 14:12:33
+stop = "'" || Char(Year(Today())) || "-" || Substr("00", 1,  2 - Length(Char(Month(Today())))) || Char(Month(Today())) || "-" || Substr("00", 1 , 2 - Length(Char(Day(Today())))) || Char(Day(Today())) || " 23:59:59'"; // today
+
+// build query
+// identifies start & end timepoints for every SMB rotary valve (RV) index position 
+// summarizes this into a single row every time RV idx position changes
+sql_template = "\[
+	WITH base AS (
+	  SELECT
+		TIMESTAMP_TRUNC(time, SECOND) AS t,
+		CAST(ROUND(AVG(value)) AS INT64) AS position
+	  FROM `akbm-houston-prod.houston_data.sensor_data_smb`
+	  WHERE tagname = 'MainProgram\\RV_POSITION_FROM_RVPLC'
+		AND time BETWEEN TIMESTAMP( ¤ start ¤ ) AND TIMESTAMP( ¤ stop ¤ )
+	  GROUP BY t
+	),
+	runs AS (
+	  SELECT
+		t,
+		position,
+		CASE
+		  WHEN LAG(position) OVER (ORDER BY t) IS NULL
+			OR position <> LAG(position) OVER (ORDER BY t)
+		  THEN 1 ELSE 0
+		END AS is_new_run
+	  FROM base
+	),
+	labeled AS (
+	  SELECT
+		t,
+		position,
+		SUM(is_new_run) OVER (ORDER BY t) AS run_id
+	  FROM runs
+	),
+	agg AS (
+	  SELECT
+		position,
+		MIN(t) AS start_time,
+		MAX(t) AS end_time
+	  FROM labeled
+	  GROUP BY position, run_id
+	)
+	SELECT
+	  position,
+	  start_time,
+	  end_time,
+	  TIMESTAMP_DIFF(end_time, start_time, SECOND) AS duration_seconds
+	FROM agg
+	ORDER BY start_time;
+]\";
+
+sql_str = Eval Insert(sql_template, "¤");
+
+// run query
+obj = New SQL Query(
+	Connection( ODBC ),
+	Custom SQL( sql_str ),
+	Query Name( "tag data" )
+);
+dt = obj << Run Foreground;
+dt << Delete Table Variable( "SQL" );
+
+// delete row, since we can't be sure we've capture the right step
+deleteMatrix = Matrix( Eval( {N Rows( dt )} ) );
+dt << Select Rows( deleteMatrix ) << Delete Rows;
+
+// introduce col for minutes & label to enable querying via graph label click
+dt << New Column( "SMB cycle duration [min]", "Numeric", "Continuous",
+	Format( "Fixed Dec", 12, 0 ),
+	formula( :duration_seconds/60 )
+); 
+
+// enable query directly from label
+dt:start_time << Label;
+
+// change column width so entire timestamp is visible.
+dt:start_time << Set Display Width( 132 );
+dt:end_time << Set Display Width( 132 );
+// change table script panel width
+window = Get Window( dt );
+sb = window << Find( SplitterBox( 1 ) );
+sb << Set Width( 200 );
+
+// graphical analysis script
+dt << New Script( "cycle time, trend over time",
+	Graph Builder(
+		Size( 770, 454 ),
+		Show Control Panel( 0 ),
+		Fit to Window( "Off" ),
+		Variables( X( :start_time ), Y( :"SMB cycle duration [min]"n ) ),
+		Elements( Points( X, Y, Legend( 18 ) ), Line( X, Y, Legend( 20 ) ) ),
+		Local Data Filter(
+			Width( 360 ),
+			Add Filter(
+				columns( :start_time, :"duration [min]"n )
+			)
+		),
+		SendToReport(
+			Dispatch( {}, "duration [min]", ScaleBox,
+				{Add Ref Line(
+					150,
+					"Solid",
+					"Black",
+					"current cycle time",
+					1,
+					1,
+					Label Settings( {Label Position( "Inside Below" )} )
+				)}
+			),
+			Dispatch( {}, "400", LegendBox, {Legend Position( {18, [-1], 20, [-1]} )} )
+		)
+	);
+);
+
+// event handler to query for state of manufacturing by proxy of, e.g., FI2120.PV (decanter feed flow)
+// by clicking into column "start_time", suspicious time intervals can be queried
+dt:"start_time"n << Set Property(
+	"Event Handler",
+	Event Handler(
+		Click(
+			JSL Quote(
+				Function( {thisTable, thisColumn, iRow}, // 3 parameters
+					{/* list of local variables, if needed */ },
+					start = Current Datatable():start_time[] - 600;
+					
+					stop = Current Datatable():end_time[] + 600;
+				
+					start = "'" || Char(Year(start)) || "-" || Substr("00", 1,  2 - Length(Char(Month(start)))) || Char(Month(start)) || "-" || Substr("00", 1 , 2 - Length(Char(Day(start)))) || Char(Day(start)) || " " ||Substr("00", 1,  2 - Length(Char(Hour(start)))) || Char(Hour(start)) ||":" ||Substr("00", 1,  2 - Length(Char(Minute(start)))) || Char(Minute(start))|| ":" ||Substr("00", 1,  2 - Length(Char(Second(start)))) || Char(Second(start))|| "'" ; 
+					
+					stop = "'" || Char(Year(stop)) || "-" || Substr("00", 1,  2 - Length(Char(Month(stop)))) || Char(Month(stop)) || "-" || Substr("00", 1 , 2 - Length(Char(Day(stop)))) || Char(Day(stop)) || " " ||Substr("00", 1,  2 - Length(Char(Hour(stop)))) || Char(Hour(stop)) ||":" ||Substr("00", 1,  2 - Length(Char(Minute(stop)))) || Char(Minute(stop))|| ":" ||Substr("00", 1,  2 - Length(Char(Second(stop)))) || Char(Second(stop))|| "'" ; 
+		
+					sql_template = "\[
+						SELECT tagname, value, time
+						FROM `akbm-houston-prod.houston_data.sensor_data_scada`
+						WHERE tagname IN ( 
+							'FI2120.PV',    -- decanter feed flow
+							'LI2100.PV',    -- relative fill level extraction tank TK-2100
+							'LI2200.PV'     -- relative fill level extraction tank TK-2200
+						)
+						AND time BETWEEN TIMESTAMP( ¤ start ¤ ) AND TIMESTAMP( ¤ stop ¤ )
+
+						UNION ALL
+
+						SELECT tagname, value, time
+						FROM `akbm-houston-prod.houston_data.sensor_data_smb`
+						WHERE tagname = 'MainProgram\\LIT_164'  -- SMB feed tank
+						AND time BETWEEN TIMESTAMP( ¤ start ¤ ) AND TIMESTAMP( ¤ stop ¤ )
+
+						ORDER BY
+						  time,
+						  tagname;
+					]\
+					";
+
+					sql_str = Eval Insert(sql_template, "¤");
+
+					ODBC = "ODBC:DSN=bq64_system";
+							
+					obj = New SQL Query(
+						Connection( ODBC ),
+						Custom SQL( sql_str ),
+						Query Name( "tag data" )
+					);
+					dt2 = obj << Run Foreground;
+					dt2 << Delete Table Variable( "SQL" );
+					
+					dt3 = dt2 << Split(
+						Split By( :tagname ),
+						Split( :value ),
+						Group( :time ),
+						Output Table( "subquery" ),
+						Remaining Columns( Drop All ),
+						Sort by Column Property
+					);
+					Close( dt2, no save );
+					scrpts = dt3 << Get Table Script Names;
+					dt3 << Delete Scripts( scrpts );
+					// graph builder
+					dt3 << New Script("tag value vs time",
+						Graph Builder(
+							Size( 528, 548 ),
+							Show Control Panel( 0 ),
+							Fit to Window( "Off" ),
+							Variables(
+								X( :time ),
+								Y( :FI2120.PV ),
+								Y( :LI2100.PV ),
+								Y( :LI2200.PV, Position( 2 ) ),
+								Y( :MainProgram\LIT_164 )
+							),
+							Elements( Position( 1, 1 ), Points( X, Y, Legend( 8 ) ) ),
+							Elements( Position( 1, 2 ), Points( X, Y( 1 ), Y( 2 ), Legend( 10 ) ) ),
+							Elements( Position( 1, 3 ), Points( X, Y, Legend( 11 ) ) )
+						);
+					)	
+				);
+			)					
+		),
+		Tip(
+			JSL Quote(
+				Function( {thisTable, thisColumn, iRow}, // 3 parameters
+					{ /* list of local variables, if needed */ },
+					"Click here to get decanter feed for the period (start to end) in this row."; 
+				);
+			)		
+	
+		),
+		Color(
+			JSL Quote(
+				Function( {thisTable, thisColumn, iRow}, // 3 parameters
+					{ /* list of local variables, if needed */ },
+					RGBColor("link");
+				);
+			)		
+		)
+	)
+);
+Stop();
+
+
+/*
+
+//#####################################################################################
+// (3) Mapping average TK164 fill levels to SMB cycle times
+//#####################################################################################
+/*script #2 above creates a list of SMB cycle time. this list contains start and stop times, along with durations columns (stop minus start) in seconds and minutes. as the historical data show, the system cycle time in most cases is exceeded due to process stops. the script below is in development to get the average TK-164 tank level for each cycle duration. the reason for this analysis is the suggestion by production that cycle times are usually exceeded because of too low fill levels in TK164, which is the SMB feed tank.*/
+
+
+// get avg scrpt
+dt = Current Datatable();
+
+rows = N Rows( dt );
+
+dt << New Column( "avg lvl TK164 [%]", "Numeric", "Continuous" );
+
+
+// to do:
+// 	add if condition to ignore rows where duration = 0
+
+
+For( i = 1, i <= rows, i++,
+	If( :duration_seconds[i] != 0,
+	
+		start = dt:start_time[i];
+		stop = dt:end_time[i];
+		
+		start = "'" || Char(Year(start)) || "-" || Substr("00", 1,  2 - Length(Char(Month(start)))) || Char(Month(start)) || "-" || Substr("00", 1 , 2 - Length(Char(Day(start)))) || Char(Day(start)) || " " ||Substr("00", 1,  2 - Length(Char(Hour(start)))) || Char(Hour(start)) ||":" ||Substr("00", 1,  2 - Length(Char(Minute(start)))) || Char(Minute(start))|| ":" ||Substr("00", 1,  2 - Length(Char(Second(start)))) || Char(Second(start))|| "'" ; 
+						
+		stop = "'" || Char(Year(stop)) || "-" || Substr("00", 1,  2 - Length(Char(Month(stop)))) || Char(Month(stop)) || "-" || Substr("00", 1 , 2 - Length(Char(Day(stop)))) || Char(Day(stop)) || " " ||Substr("00", 1,  2 - Length(Char(Hour(stop)))) || Char(Hour(stop)) ||":" ||Substr("00", 1,  2 - Length(Char(Minute(stop)))) || Char(Minute(stop))|| ":" ||Substr("00", 1,  2 - Length(Char(Second(stop)))) || Char(Second(stop))|| "'" ; 
+		
+		sql_template = "\[
+			SELECT
+			  'MainProgram\\LIT_164' AS tagname,
+			  TIMESTAMP( ¤ start ¤ )  AS interval_start,
+			  TIMESTAMP( ¤ stop ¤ )   AS interval_stop,
+			  AVG(value)              AS avg_value
+			FROM `akbm-houston-prod.houston_data.sensor_data_smb`
+			WHERE tagname = 'MainProgram\\LIT_164'  -- SMB feed tank
+			  AND time >= TIMESTAMP( ¤ start ¤ )
+			  AND time <= TIMESTAMP( ¤ stop ¤ );
+		]\
+		";
+		
+		sql_str = Eval Insert(sql_template, "¤");
+
+		ODBC = "ODBC:DSN=bq64_system";
+				
+		obj = New SQL Query(
+			Connection( ODBC ),
+			Custom SQL( sql_str ),
+			Query Name( "tag data" )
+		);
+		dt2 = obj << Run Foreground;
+		
+		dt:"avg lvl TK164 [%]"n[i] = dt2:avg_value[1];
+		
+		Close( dt2, no save );
+	)
+);
+
+*/

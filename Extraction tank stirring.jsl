@@ -1,0 +1,36 @@
+/*
+instructions: look for a period where flow from extraction tank and decanter torque indicate normal (full capacity) plant operation. for this period, look at the QHP filling speeds & weights to estimate flow of dried product.
+
+
+*/
+start = "'2024-01-28 00:00:00'"; // yyyy-mm-dd
+stop = "'2025-01-28 23:59:59'";
+granularity = "MINUTE";
+
+Open Database("DSN=bq64_system", "
+
+  SELECT 
+    TIMESTAMP_TRUNC(time, " || granularity || ") AS time,
+
+    AVG(CASE WHEN tagname = 'SIC2100.I_PV' THEN value END) AS SIC2100_I_PV,
+    AVG(CASE WHEN tagname = 'SIC2100.PV' THEN value END) AS SIC2100_PV,
+    AVG(CASE WHEN tagname = 'SIC2200.I_PV' THEN value END) AS SIC2200_I_PV,
+    AVG(CASE WHEN tagname = 'SIC2200.PV' THEN value END) AS SIC2200_PV
+
+  FROM 
+    `akbm-houston-prod.houston_data.sensor_data_scada`
+
+  WHERE 
+    time BETWEEN TIMESTAMP(" || start || ") AND TIMESTAMP(" || stop || ")
+    AND time >= '1900-01-01'
+    AND tagname IN (
+      'SIC2100.I_PV',
+      'SIC2100.PV',
+      'SIC2200.I_PV',
+      'SIC2200.PV'
+    )
+
+  GROUP BY 
+    TIMESTAMP_TRUNC(time, " || granularity || ")
+
+", "QHP packing station, extraction flow & decanter torque");

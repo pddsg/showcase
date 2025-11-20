@@ -1,0 +1,61 @@
+Python Submit(
+	"\[
+import pyodbc
+import pandas as pd
+import json
+
+# Define ODBC connection
+dsn = 'bq64_system'  # Replace with your actual DSN name
+conn = pyodbc.connect(f"DSN={dsn}", autocommit=True)
+
+# Create a cursor
+cursor = conn.cursor()
+
+# Define SQL query
+query = """
+SELECT *
+FROM akbm-houston-prod.houston_tag_data.time_series_metadata
+"""
+# execute query & fetch results
+cursor.execute(query)
+rows = cursor.fetchall()
+
+# get column names & convert to data frame
+columns = [column[0] for column in cursor.description]
+df = pd.DataFrame.from_records(rows, columns=columns)
+
+# close connection
+conn.close()
+
+# Function to flatten a JSON column
+def flatten_json_column(df, column_name):
+	# Parse the JSON strings in the column
+	json_data = df[column_name].apply(json.loads)
+	
+	# Create a DataFrame from the parsed JSON data
+	flattened_df = pd.json_normalize(json_data)
+	
+	# Rename the columns to indicate their origin
+	flattened_df.columns = [f"{column_name}.{col}" for col in flattened_df.columns]
+	
+	# Concatenate the original DataFrame with the flattened DataFrame
+	df = pd.concat([df, flattened_df], axis=1)
+	
+	# Drop the original JSON column
+	df = df.drop(columns=[column_name])
+	
+	return df
+
+# Flatten 'format' column
+df = flatten_json_column(df, 'format')
+
+# Flatten 'metadata' column
+df = flatten_json_column(df, 'metadata')
+	]\"
+
+);
+dt_mtdt = Python Get( df );
+dt_mtdt << New Data View;
+
+lstscrpts = dt_mtdt << Get Table Script Names;
+dt_mtdt << Delete Scripts( lstscrpts );
