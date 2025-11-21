@@ -1,6 +1,6 @@
 ### Showcase Repository
 
-This repository represents a small showcase of hand-picked scripts and projects I've developed in a manufacturing and QC environment. The original library is much larger but kept private for IP reasons. You'll find a mix of JMP scripting language code with traces of Python and SQL added to the toolkit. These scripts are used for data analysis and dashboarding of QC, as well as manufacturing sensor data.
+This repository represents a small sample of hand-picked scripts and projects I've developed in a manufacturing and QC environment. The original library is much larger but kept private for IP reasons. You'll find a mix of JMP scripting language code with traces of Python and SQL added to the toolkit. These scripts are used for data analysis and dashboarding of QC, as well as manufacturing sensor data.
 
 There's a Jupyter notebook that goes through some Python examples. The JMP scripts often have SQL, and in one case Python, tucked inside. The [Bulk Oil Stability Calculator](https://github.com/pddsg/showcase/blob/main/Bulk%20oil%20stability%20calculator.jrn) and [AKBM Google Cloud View Opener](https://github.com/pddsg/showcase/blob/main/AKBM%20Google%20Cloud%20view%20opener.jmpaddin) are best experienced in connection with a JMP license. Both are actively used in [Aker BioMarine](https://www.akerbiomarine.com/) at the time of writing.
 
