@@ -7,3 +7,5 @@ There's a Jupyter notebook that goes through some Python examples. The JMP scrip
 Feel welcome to browse around. This is a fair assessment of how I’ve been refining my data analysis and modelling skills to shape myself from industrial analytical chemist to citizen data scientist.
 
 There are always too many low-hanging fruits. And yes, I use AI for Python and SQL, because AI is a good teacher. For JSL I rely heavily on the [JMP User Community](https://community.jmp.com/) - here's [my user profile](https://community.jmp.com/t5/user/viewprofilepage/user-id/15435).
+
+P.s.: In case you're wondering why this repo shows it contains 100% Python, this is due to JSL not yet being recognized by GitHub, and not because I didn't try fixing it with a <code>.gitattributes</code> file.
