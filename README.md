@@ -6,4 +6,4 @@ There's a Jupyter notebook that goes through some Python examples. The JMP scrip
 
 Feel welcome to browse around. This is a fair assessment of how I’ve been refining my data analysis and modelling skills to shape myself from industrial analytical chemist to citizen data scientist.
 
-There are always too many low-hanging fruits. And yes, I use AI for Python and SQL, because AI is a good teacher. For JSL I rely heavily on the [JMP User Community](https://community.jmp.com/). Here's [my user profile](https://community.jmp.com/t5/user/viewprofilepage/user-id/15435).
+There are always too many low-hanging fruits. And yes, I use AI for Python and SQL, because AI is a good teacher. For JSL I rely heavily on the [JMP User Community](https://community.jmp.com/) here's [my user profile](https://community.jmp.com/t5/user/viewprofilepage/user-id/15435).
