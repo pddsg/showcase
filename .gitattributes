@@ -1,2 +1,2 @@
-*.jsl linguist-language=JSL
-*.jsl linguist-detectable=true
+* linguist-vendored
+*.jsl linguist-vendored=false
