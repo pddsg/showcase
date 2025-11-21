@@ -11,7 +11,7 @@ There are always too many low-hanging fruits. And yes, I use AI for Python and S
 P.s.: In case you're wondering why this repo shows it contains 100% Jupyter Notebooks, this is due to JSL not yet being recognized by GitHub, and not because I didn't try fixing it with a <code>.gitattributes</code> file.
 
 ## Projects
-# JSL
+### JSL
 - **akbm_bq_view_opener.jmpaddin** – simplifying access to business critical view in Google BigQuer.
 - **algae_oil_trending.jsl** – trending and statistical analysis of algae oil in-process and QC data.
 - **bulk oil stability calculator.jrn** – a tool for assessing shelf-life of products of varying quality, stored under varying conditions.'
@@ -20,7 +20,7 @@ P.s.: In case you're wondering why this repo shows it contains 100% Jupyter Note
 - **extraction_tank_stirring.jsl** - trending and inspection of agitation used in process tanks.
 - **smb_cycle_time_hist.jsl** - plotting of changes in system settings, previously frequently undocumented and not analyzed as a function of time.
 - **tag_metadata (py).jsl** - retrieving flattended table of sensor metadata (i.e., unnesting nested tables).
-# Python
+### Python
 - **area_under_curve.ipynb** - integration of transient signals in connection with a specific event in a manufacturing plant. For investigative purposes.
 - **ethanol_peaks_auc.ipynb** - quantifying process inputs from flow meter readings.
 - **extraction_yield_wip.ipynb** - process yield calculations. Work in progress.'
