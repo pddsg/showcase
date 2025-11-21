@@ -27,5 +27,6 @@ P.s.: In case you're wondering why this repo shows it contains 100% Jupyter Note
 - **flattening_nested_dictionaries.ipynb** - used for developing Python eventually used in <code>tag_metadata (py).jsl</code>.
 
 ## Example screenshot from <code>capsule_trending.jsl</code>
-<img width="676" height="341" alt="image" src="https://github.com/user-attachments/assets/d3f78e20-f425-4675-b9b5-179f522c9d2c" />
+<img width="671" height="341" alt="image" src="https://github.com/user-attachments/assets/4a0bacfa-dc05-4a18-b9d7-d07b6b303cf5" />
+
 
