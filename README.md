@@ -19,7 +19,7 @@ P.s.: In case you're wondering why this repo shows it contains 100% Jupyter Note
 - **[dryer_pressure_readings.jsl](https://github.com/pddsg/showcase/blob/main/jsl_scripts/dryer_pressure_readings.jsl)** - trending and inspection of system critical pressure readings and their fluctuations over time.
 - **[extraction_tank_stirring.jsl](https://github.com/pddsg/showcase/blob/main/jsl_scripts/extraction_tank_stirring.jsl)** - trending and inspection of agitation used in process tanks.
 - **[smb_cycle_time_hist.jsl](https://github.com/pddsg/showcase/blob/main/jsl_scripts/smb_cycle_time_hist.jsl)** - plotting of changes in system settings, previously frequently undocumented and not analyzed as a function of time.
-- **[tag_metadata (py).jsl](https://github.com/pddsg/showcase/blob/main/jsl_scripts/tag_metadata (py).jsl)** - retrieving flattened table of sensor metadata (i.e., unnesting nested tables).
+- **[tag_metadata_py.jsl](https://github.com/pddsg/showcase/blob/main/jsl_scripts/tag_metadata_py.jsl)** - retrieving flattened table of sensor metadata (i.e., unnesting nested tables).
 ### Python
 - **[area_under_curve.ipynb](https://github.com/pddsg/showcase/blob/main/jupyter_notebooks/area_under_curve.ipynb)** - integration of transient signals in connection with an investigation of production anomalies.
 - **[ethanol_peaks_auc.ipynb](https://github.com/pddsg/showcase/blob/main/jupyter_notebooks/ethanol_peaks_auc.ipynb)** - quantifying process inputs from flow meter readings.
