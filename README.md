@@ -12,21 +12,21 @@ P.s.: In case you're wondering why this repo shows it contains 100% Jupyter Note
 
 ## Projects
 ### JSL
-- **akbm_bq_view_opener.jmpaddin** – simplifying access to business critical view in Google BigQuery.
-- **algae_oil_trending.jsl** – trending and statistical analysis of algae oil in-process and QC data.
-- **bulk oil stability calculator.jrn** – a tool for assessing shelf-life of products of varying quality, stored under varying conditions.
-- **capsule_trending.jsl** - trending and statistical analysis of capsule QC data.
-- **dryer_pressure_readings.jsl** - trending and inspection of system critical pressure readings and their fluctuations over time.
-- **extraction_tank_stirring.jsl** - trending and inspection of agitation used in process tanks.
-- **smb_cycle_time_hist.jsl** - plotting of changes in system settings, previously frequently undocumented and not analyzed as a function of time.
-- **tag_metadata (py).jsl** - retrieving flattened table of sensor metadata (i.e., unnesting nested tables).
+- **[akbm_bq_view_opener.jmpaddin](https://github.com/pddsg/showcase/blob/main/jsl_addin/akbm_bq_view_opener.jmpaddin)** – simplifying access to business critical view in Google BigQuery.
+- **[algae_oil_trending.jsl](https://github.com/pddsg/showcase/blob/main/jsl_scripts/algae_oil_trending.jsl)** – trending and statistical analysis of algae oil in-process and QC data.
+- **[bulk oil stability calculator.jrn](https://github.com/pddsg/showcase/blob/main/jsl_scripts/bulk%20oil%20stability%20calculator.jrn)** – a tool for assessing shelf-life of products of varying quality, stored under varying conditions.
+- **[capsule_trending.jsl](https://github.com/pddsg/showcase/blob/main/jsl_scripts/capsule_trending.jsl)** - trending and statistical analysis of capsule QC data.
+- **[dryer_pressure_readings.jsl](https://github.com/pddsg/showcase/blob/main/jsl_scripts/dryer_pressure_readings.jsl)** - trending and inspection of system critical pressure readings and their fluctuations over time.
+- **[extraction_tank_stirring.jsl](https://github.com/pddsg/showcase/blob/main/jsl_scripts/extraction_tank_stirring.jsl)** - trending and inspection of agitation used in process tanks.
+- **[smb_cycle_time_hist.jsl](https://github.com/pddsg/showcase/blob/main/jsl_scripts/smb_cycle_time_hist.jsl)** - plotting of changes in system settings, previously frequently undocumented and not analyzed as a function of time.
+- **[tag_metadata (py).jsl](https://github.com/pddsg/showcase/blob/main/jsl_scripts/tag_metadata (py).jsl)** - retrieving flattened table of sensor metadata (i.e., unnesting nested tables).
 ### Python
-- **area_under_curve.ipynb** - integration of transient signals in connection with an investigation of production anomalies.
-- **ethanol_peaks_auc.ipynb** - quantifying process inputs from flow meter readings.
-- **extraction_yield_wip.ipynb** - process yield calculations. Work in progress.'
-- **flattening_nested_dictionaries.ipynb** - used for developing Python eventually used in <code>tag_metadata (py).jsl</code>.
+- **[area_under_curve.ipynb](https://github.com/pddsg/showcase/blob/main/jupyter_notebooks/area_under_curve.ipynb)** - integration of transient signals in connection with an investigation of production anomalies.
+- **[ethanol_peaks_auc.ipynb](https://github.com/pddsg/showcase/blob/main/jupyter_notebooks/ethanol_peaks_auc.ipynb)** - quantifying process inputs from flow meter readings.
+- **[extraction_yield_wip.ipynb](https://github.com/pddsg/showcase/blob/main/jupyter_notebooks/extraction_yield_wip.ipynb)** - process yield calculations. Work in progress.'
+- **[flattening_nested_dictionaries.ipynb](https://github.com/pddsg/showcase/blob/main/jupyter_notebooks/flattening_nested_dictionaries.ipynb)** - used for developing Python eventually used in <code>tag_metadata (py).jsl</code>.
 
-## Example screenshot from <code>capsule_trending.jsl</code>
+## Example screenshot from [<code>capsule_trending.jsl</code>]()
 <img width="671" height="341" alt="image" src="https://github.com/user-attachments/assets/4a0bacfa-dc05-4a18-b9d7-d07b6b303cf5" />
 
 
