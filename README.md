@@ -14,14 +14,14 @@ P.s.: In case you're wondering why this repo shows it contains 100% Jupyter Note
 ### JSL
 - **akbm_bq_view_opener.jmpaddin** – simplifying access to business critical view in Google BigQuery.
 - **algae_oil_trending.jsl** – trending and statistical analysis of algae oil in-process and QC data.
-- **bulk oil stability calculator.jrn** – a tool for assessing shelf-life of products of varying quality, stored under varying conditions.'
+- **bulk oil stability calculator.jrn** – a tool for assessing shelf-life of products of varying quality, stored under varying conditions.
 - **capsule_trending.jsl** - trending and statistical analysis of capsule QC data.
 - **dryer_pressure_readings.jsl** - trending and inspection of system critical pressure readings and their fluctuations over time.
 - **extraction_tank_stirring.jsl** - trending and inspection of agitation used in process tanks.
 - **smb_cycle_time_hist.jsl** - plotting of changes in system settings, previously frequently undocumented and not analyzed as a function of time.
 - **tag_metadata (py).jsl** - retrieving flattened table of sensor metadata (i.e., unnesting nested tables).
 ### Python
-- **area_under_curve.ipynb** - integration of transient signals in connection with a specific event in a manufacturing plant. For investigative purposes.
+- **area_under_curve.ipynb** - integration of transient signals in connection with an investigation of production anomalies.
 - **ethanol_peaks_auc.ipynb** - quantifying process inputs from flow meter readings.
 - **extraction_yield_wip.ipynb** - process yield calculations. Work in progress.'
 - **flattening_nested_dictionaries.ipynb** - used for developing Python eventually used in <code>tag_metadata (py).jsl</code>.
