@@ -33,6 +33,6 @@ There are always too many low-hanging fruits. And yes, I use AI for Python and S
 - Trending over time
 - Comparison between manufacturers
 - Drilling down to individual batches
-- Ad-hoc loading of *all* QC data of any individual batch directly from the data warehouse via a built-in point & click trigger.
+- Ad-hoc loading of <i>all</i> QC data of any individual batch directly from the data warehouse via a built-in point & click trigger.
 
 
