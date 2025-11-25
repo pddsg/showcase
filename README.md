@@ -30,9 +30,9 @@ There are always too many low-hanging fruits. And yes, I use AI for Python and S
 <br><br>The individual components in these capsule batches are shown along the x axis, and the overfills for each component are shown as relative percentages along the y axis. The results are sorted from left to right in order of increasing, average relative overfill, which makes spotting of interesting areas easy.
 <br><br>Data points below the horizontal zero line (*) are obvious problems, because these batches contain too little of the corresponding component shown on x. However, areas of excessive overfill to the right are also immediately identifiable and could aid refinement of product specifications or reduction of excessive overfills for some products. 
 <br><br>The underlying script also allows:
-<br>- Trending over time
-<br>- Comparison between manufacturers
-<br>- Drilling down to individual batches
-<br>- Ad-hoc loading of <i>all</i> QC data of any individual batch directly from the data warehouse via a built-in point & click trigger.
+<br>* Trending over time
+<br>* Comparison between manufacturers
+<br>* Drilling down to individual batches using filters
+<br>* Ad-hoc loading of <i>all</i> QC data of any individual batch directly from the data warehouse via a built-in point & click trigger.
 
 
