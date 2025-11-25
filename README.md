@@ -10,7 +10,7 @@ There are always too many low-hanging fruits. And yes, I use AI for Python and S
 
 ## Projects
 ### JSL
-- **[akbm_bq_view_opener.jmpaddin](https://github.com/pddsg/showcase/blob/main/jsl_addin/akbm_bq_view_opener.jmpaddin)** – simplifying access to business critical view in Google BigQuery.
+- **[akbm_bq_view_opener.jmpaddin](https://github.com/pddsg/showcase/blob/main/jsl_addin/akbm_bq_view_opener.jmpaddin)** – simplifying access to business critical views in Google BigQuery.
 - **[algae_oil_trending.jsl](https://github.com/pddsg/showcase/blob/main/jsl_scripts/algae_oil_trending.jsl)** – trending and statistical analysis of algae oil in-process and QC data.
 - **[bulk oil stability calculator.jrn](https://github.com/pddsg/showcase/blob/main/jsl_scripts/bulk%20oil%20stability%20calculator.jrn)** – a tool for assessing shelf-life of products of varying quality, stored under varying conditions.
 - **[capsule_trending.jsl](https://github.com/pddsg/showcase/blob/main/jsl_scripts/capsule_trending.jsl)** - trending and statistical analysis of capsule QC data.
