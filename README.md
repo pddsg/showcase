@@ -26,5 +26,11 @@ There are always too many low-hanging fruits. And yes, I use AI for Python and S
 
 ## Example screenshot from [<code>capsule_trending.jsl</code>]()
 <img width="771" height="392" alt="image" src="https://github.com/user-attachments/assets/4a0bacfa-dc05-4a18-b9d7-d07b6b303cf5" />
+What you see here are multiple graphs showing the overfill of individual components relative to their specification limits. Each line corresponds with one product batch, and the products are capsules from various contract manufacturers. The individual components in these capsule batches are shown along the x axis, and the overfill for each component is shown as relative percentage along the y axis. Data points below the horizontal zero line are obvious problems, because these batches contain too little of the corresponding component along x. However, areas of excessive overfill are also immediately identifiable and could aid refinement of product specifications or reduction of excessive overfills for some products. 
+The underlying script also allows:
+- Trending over time
+- Comparison between manufacturers
+- Drilling down to individual batches
+- Ad-hoc loading of *all* QC data of any individual batch directly from the data warehouse via a built-in point & click trigger.
 
 
