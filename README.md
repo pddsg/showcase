@@ -8,8 +8,6 @@ Feel welcome to browse around. This is a fair assessment of how I’ve been refi
 
 There are always too many low-hanging fruits. And yes, I use AI for Python and SQL, because AI is a good teacher. For JSL I rely heavily on the [JMP User Community](https://community.jmp.com/) - here's [my user profile](https://community.jmp.com/t5/user/viewprofilepage/user-id/15435).
 
-P.s.: In case you're wondering why this repo shows it contains 100% Jupyter Notebooks, this is due to JSL not yet being recognized by GitHub, and not because I didn't try fixing it with a <code>.gitattributes</code> file.
-
 ## Projects
 ### JSL
 - **[akbm_bq_view_opener.jmpaddin](https://github.com/pddsg/showcase/blob/main/jsl_addin/akbm_bq_view_opener.jmpaddin)** – simplifying access to business critical view in Google BigQuery.
