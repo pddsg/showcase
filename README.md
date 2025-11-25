@@ -26,10 +26,10 @@ There are always too many low-hanging fruits. And yes, I use AI for Python and S
 
 ## Example screenshot from [<code>capsule_trending.jsl</code>]()
 <img width="771" height="392" alt="image" src="https://github.com/user-attachments/assets/4a0bacfa-dc05-4a18-b9d7-d07b6b303cf5" />
-<br>What you see here are multiple graphs showing the overfill of individual components relative to their specification limits. Each line corresponds to one product batch, and the products are capsules from various contract manufacturers. 
-<br>The individual components in these capsule batches are shown along the x axis, and the overfills for each component are shown as relative percentages along the y axis. The results are sorted from left to right in order of increasing, average relative overfill.
-<br>Data points below the horizontal zero line are obvious problems, because these batches contain too little of the corresponding component shown on x. However, areas of excessive overfill to the right are also immediately identifiable and could aid refinement of product specifications or reduction of excessive overfills for some products. 
-<br>The underlying script also allows:
+<br><br>What you see here are multiple graphs showing the overfill of individual components relative to their specification limits. Each line corresponds to one product batch, and the products are capsules from various contract manufacturers. 
+<br><br>The individual components in these capsule batches are shown along the x axis, and the overfills for each component are shown as relative percentages along the y axis. The results are sorted from left to right in order of increasing, average relative overfill.
+<br><br>Data points below the horizontal zero line are obvious problems, because these batches contain too little of the corresponding component shown on x. However, areas of excessive overfill to the right are also immediately identifiable and could aid refinement of product specifications or reduction of excessive overfills for some products. 
+<br><br>The underlying script also allows:
 - Trending over time
 - Comparison between manufacturers
 - Drilling down to individual batches
