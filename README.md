@@ -21,7 +21,7 @@ There are always too many low-hanging fruits. And yes, I use AI for Python and S
 ### Python
 - **[area_under_curve.ipynb](https://github.com/pddsg/showcase/blob/main/jupyter_notebooks/area_under_curve.ipynb)** - integration of transient signals in connection with an investigation of production anomalies.
 - **[ethanol_peaks_auc.ipynb](https://github.com/pddsg/showcase/blob/main/jupyter_notebooks/ethanol_peaks_auc.ipynb)** - quantifying process inputs from flow meter readings.
-- **[extraction_yield_wip.ipynb](https://github.com/pddsg/showcase/blob/main/jupyter_notebooks/extraction_yield_wip.ipynb)** - process yield calculations. Work in progress.'
+- **[extraction_yield_wip.ipynb](https://github.com/pddsg/showcase/blob/main/jupyter_notebooks/extraction_yield_wip.ipynb)** - process yield calculations. Work in progress.
 - **[flattening_nested_dictionaries.ipynb](https://github.com/pddsg/showcase/blob/main/jupyter_notebooks/flattening_nested_dictionaries.ipynb)** - used for developing Python eventually used in <code>tag_metadata (py).jsl</code>.
 
 ## Example screenshot from [<code>capsule_trending.jsl</code>]()
