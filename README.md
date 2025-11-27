@@ -35,4 +35,9 @@ There are always too many low-hanging fruits. And yes, I use AI for Python and S
 - Drilling down to individual batches using filters
 - Ad-hoc loading of <i>all</i> QC data of any individual batch directly from the data warehouse via a built-in point & click trigger.
 
+<br><ul>
+  <li>Trending over time</li>
+  <li>Comparison between manufacturers</li>
+  <li>Drilling down…</li>
+</ul>
 
